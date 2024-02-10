@@ -1,0 +1,28 @@
+image:
+  repository: asia-docker.pkg.dev/project/repo/cloudflare-dns-ddns
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets:
+  - name: "gar-asia"
+
+nameOverride: ""
+fullnameOverride: ""
+
+env:
+  ZONE_ID: ""
+  INTERVAL: ""
+  COMMENT_AFFIX: ""
+secret:
+  TOKEN: ""
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
