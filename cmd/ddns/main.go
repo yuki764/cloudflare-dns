@@ -12,6 +12,8 @@ import (
 )
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
 	client := &dns.Client{Token: os.Getenv("TOKEN"), ZoneId: os.Getenv("ZONE_ID")}
 
 	// set updating interval
@@ -21,9 +23,9 @@ func main() {
 	}
 
 	// list records with specific comment
-	commentPrefix := "ddns/" + os.Getenv("COMMENT_AFFIX") + "/"
-	if os.Getenv("COMMENT_AFFIX") == "" {
-		slog.Error("environment variable COMMENT_AFFIX must be specified")
+	commentPrefix := os.Getenv("COMMENT_PREFIX")
+	if commentPrefix == "" {
+		slog.Error("environment variable COMMENT_PREFIX must be specified")
 		panic(nil)
 	}
 	records, err := client.ListRecordsHasCommentPrefix(commentPrefix)
@@ -63,7 +65,7 @@ func main() {
 					if err := client.PatchRecord(dns.Record{
 						Name:    r.Name,
 						Type:    r.Type,
-						Content: addr, // replace addr only
+						Content: addr, // update current my address
 						Id:      r.Id,
 						Comment: commentPrefix + "updated/" + updateTime,
 					}); err != nil {
