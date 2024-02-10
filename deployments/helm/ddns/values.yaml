@@ -13,7 +13,7 @@ fullnameOverride: ""
 env:
   ZONE_ID: ""
   INTERVAL: ""
-  COMMENT_AFFIX: ""
+  COMMENT_PREFIX: ""
 secret:
   TOKEN: ""
 
