@@ -21,7 +21,7 @@ type Client struct {
 	ZoneId string
 }
 
-func (c Client) GetRecordId(r Record) (*Record, error) {
+func (c Client) GetRecord(r Record) (*Record, error) {
 	cloudflareEndpoint := "https://api.cloudflare.com/client/v4/zones/" + c.ZoneId + "/dns_records"
 
 	// get record ID from name and record type
@@ -35,6 +35,9 @@ func (c Client) GetRecordId(r Record) (*Record, error) {
 	q := req.URL.Query()
 	q.Add("name", r.Name)
 	q.Add("type", r.Type)
+	if r.Comment != "" {
+		q.Add("comment", r.Comment)
+	}
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := http.DefaultClient.Do(req)
@@ -57,7 +60,7 @@ func (c Client) GetRecordId(r Record) (*Record, error) {
 	return &listRecords.Result[0], nil
 }
 
-func (c Client) ListRecordsHasCommentPrefix(comment string) ([]Record, error) {
+func (c Client) ListRecordsHasCommentPrefix(commentPrefix string) ([]Record, error) {
 	cloudflareEndpoint := "https://api.cloudflare.com/client/v4/zones/" + c.ZoneId + "/dns_records"
 
 	// get record ID from name and record type
@@ -69,7 +72,7 @@ func (c Client) ListRecordsHasCommentPrefix(comment string) ([]Record, error) {
 	req.Header.Add("Authorization", "Bearer "+c.Token)
 
 	q := req.URL.Query()
-	q.Add("comment.startswith", comment)
+	q.Add("comment.startswith", commentPrefix)
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := http.DefaultClient.Do(req)

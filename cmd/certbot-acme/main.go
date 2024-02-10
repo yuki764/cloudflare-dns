@@ -11,44 +11,49 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
 	client := &dns.Client{Token: os.Getenv("TOKEN"), ZoneId: os.Getenv("ZONE_ID")}
 
-	recordName := "_acme-challenge." + os.Getenv("CERTBOT_DOMAIN")
+	comment := os.Getenv("COMMENT")
+	validationToken := os.Getenv("CERTBOT_VALIDATION")
 
-	r, err := client.GetRecordId(dns.Record{
-		Name: recordName,
-		Type: "TXT",
+	r, err := client.GetRecord(dns.Record{
+		Name:    "_acme-challenge." + os.Getenv("CERTBOT_DOMAIN"),
+		Type:    "TXT",
+		Comment: comment,
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	slog.Info("debug", "debug", r)
+	slog.Debug("debug", "debug", r)
 
 	if err := client.PatchRecord(dns.Record{
 		Name:    r.Name,
 		Type:    r.Type,
-		Content: os.Getenv("CERTBOT_VALIDATION"), // replace validation record only
+		Content: validationToken, // replace validation record only
+		Comment: r.Comment,
 		Id:      r.Id,
 	}); err != nil {
 		panic(err)
 	}
 
 	// confirm TXT record updated
-	checkNum := 5
+	checkNum := 10
 	for i := range checkNum + 1 {
-		time.Sleep(30 * time.Second)
+		time.Sleep(10 * time.Second)
 
 		slog.Info(fmt.Sprintf("checking if validation record is updated (%d of %d)", i+1, checkNum))
-		vals, err := net.LookupTXT(recordName)
+		vals, err := net.LookupTXT(r.Name)
 		if err != nil {
 			panic(err)
 		}
-		if vals[0] == os.Getenv("CERTBOT_VALIDATION") {
-			slog.Info("confirm validation record is updated")
-			break
+		for _, v := range vals {
+			if v == validationToken {
+				slog.Info("confirm validation record is updated")
+				return
+			}
 		}
 	}
 }
