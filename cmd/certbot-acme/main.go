@@ -32,7 +32,7 @@ func main() {
 	if err := client.PatchRecord(dns.Record{
 		Name:    r.Name,
 		Type:    r.Type,
-		Content: validationToken, // replace validation record only
+		Content: `"` + validationToken + `"`, // replace validation record only
 		Comment: r.Comment,
 		Id:      r.Id,
 	}); err != nil {
